@@ -1,6 +1,7 @@
+
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
-import jsonwebtoken from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const userSchema = new Schema(
   {
@@ -8,57 +9,72 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true,
       lowercase: true,
+      trim: true,
       index: true,
     },
+
     email: {
       type: String,
       required: true,
       unique: true,
-      trim: true,
       lowercase: true,
+      trim: true,
     },
+
     fullName: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
+
     avatar: {
       type: String,
-      required: true, // cloudinary url
+      required: true,
     },
+
     coverImage: {
-      type: String, // cloudinary url
+      type: String,
+      default: "",
     },
+
     watchHistory: [
       {
         type: Schema.Types.ObjectId,
         ref: "Video",
       },
     ],
+
     password: {
       type: String,
       required: [true, "Password is required"],
     },
-    refershToken: {
-      type: string,
+
+    refreshToken: {
+      type: String,
     },
   },
-  { Timestamp: true }
+  {
+    timestamps: true,
+  }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+// Password hashing
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) {
+    return;
+  }
 
-  this.password = await bcrypt.hash(this.password,10);
-  next();
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
+// Password comparison
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
+
+// Access token generation
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -73,6 +89,8 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
+
+// Refresh token generation
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
@@ -85,4 +103,4 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-export default (User = mongoose.model("User", userSchema));
+export const User = mongoose.model("User", userSchema);
