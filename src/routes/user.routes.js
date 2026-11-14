@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 
 import {
@@ -44,10 +43,7 @@ router.route("/login").post(loginUser);
 // POST /api/v1/users/logout
 // ============================================
 
-router.route("/logout").post(
-  verifyJWT,
-  logoutUser
-);
+router.route("/logout").post(verifyJWT, logoutUser);
 
 // ============================================
 // EXPORT ROUTER
